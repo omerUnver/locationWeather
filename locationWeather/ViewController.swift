@@ -9,6 +9,9 @@ import UIKit
 import CoreLocation
 //Kullanıcının konumunu almak için coreLocation kütüphanesini import ettim ardından konum almak için gerekli işlemleri gerçekleştirdim
 class ViewController: UIViewController, CLLocationManagerDelegate{
+    @IBOutlet weak var descriptionLabel: UILabel!
+    @IBOutlet weak var maxTemp: UILabel!
+    @IBOutlet weak var minTemp: UILabel!
     @IBOutlet weak var locationName: UILabel!
     @IBOutlet weak var sicaklik: UILabel!
     @IBOutlet weak var iconImage: UIImageView!
@@ -31,6 +34,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate{
         let location = locations[0]
         latitude = location.coordinate.latitude
         longitude = location.coordinate.longitude
+        print(latitude)
+        print(longitude)
         let url = URLRequest(url: URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=0cf0b8aec57f0673aa317cfae9353996&units=metric")!) //Kullanıcıdan aldığım latitude ve longitude değerlerini api'nin istediği latitude ve longitude değerlerinin yerlerine yazdım böylelikle kullanıcının konumu geldiğinde api'da alınan konum değerlerine göre bir obje vericek
         DispatchQueue.global().async {
             let task = URLSession.shared.dataTask(with: url) { data, response, error in
@@ -45,18 +50,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate{
                             }
                         }
                         if let main = json["main"] as? [String : Any] { //Api'dan sıcaklık değerlerini aldım
-                                if let temp = main["temp"] as? Double{
-                                    let weatherTemp = Int(temp)
+                                if let temp = main["temp"] as? Double, let minTemp = main["temp_min"] as? Double, let maxTemp = main["temp_max"] as? Double{
                                     DispatchQueue.main.async {
-                                        self.sicaklik.text = "\(weatherTemp) C°"
+                                        self.sicaklik.text = "\(temp) C°"
+                                        self.minTemp.text = "Min: \(minTemp) C°"
+                                        self.maxTemp.text = "Max: \(maxTemp) C°"
                                     }
                                 }
                         }
                         if let weatherIcon = json["weather"] as? [[String : Any]] { //Api'den icon'u aldım
                             for weatIcon in weatherIcon{
-                                if let icon = weatIcon["icon"] as? String {
+                                if let icon = weatIcon["icon"] as? String, let description = weatIcon["description"] as? String {
                                     DispatchQueue.main.async {
                                         self.iconImage.image = UIImage(named: icon)
+                                        self.descriptionLabel.text = description
                                     }
                                 }
                             }
